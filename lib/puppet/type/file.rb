@@ -396,6 +396,13 @@ Puppet::Type.newtype(:file) do
     end
     # if the resource is a link, make sure the target is created first
     req << self[:target] if self[:target]
+    # if the resource has a source set, make sure it is created first
+    self[:source]&.each do |src|
+      # need a better way to find local sources, but this doesn't work as src is a String
+      # req << src.full_path if src.local?
+      req << src.delete_prefix('file://') if Puppet::Util.absolute_path?(src.delete_prefix('file://'))
+      req << src.delete_prefix('file:///') if Puppet::Util::Platform.windows?
+    end
     req
   end
 
